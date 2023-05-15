@@ -4,7 +4,7 @@
   "parameters": {
     "newVMName": {
       "type": "string",
-      "defaultValue": "shenchen001"
+      "defaultValue": "shenchen002"
     },
     "labName": {
       "type": "string",
@@ -12,7 +12,7 @@
     },
     "size": {
       "type": "string",
-      "defaultValue": "Basic_A3"
+      "defaultValue": "Standard_DS1_v2"
     },
     "userName": {
       "type": "string",
