@@ -4,11 +4,11 @@
   "parameters": {
     "newVMName": {
       "type": "string",
-      "defaultValue": "shenchen002"
+      "defaultValue": "shenchen001"
     },
     "labName": {
       "type": "string",
-      "defaultValue": "ahila-lab-1"
+      "defaultValue": "ShenTestLab"
     },
     "size": {
       "type": "string",
@@ -37,7 +37,7 @@
       "location": "[resourceGroup().location]",
       "properties": {
         "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
-        "notes": "t",
+        "notes": "Windows 11 Enterprise (x64) (Microsoft Dev Box Compatible)",
         "galleryImageReference": {
           "offer": "windowsplustools",
           "publisher": "microsoftvisualstudio",
