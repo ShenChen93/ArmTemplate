@@ -37,6 +37,7 @@
       "location": "[resourceGroup().location]",
       "properties": {
         "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
+        "osDiskSizeGb": 139,
         "notes": "Windows 11 Enterprise (x64) (Microsoft Dev Box Compatible)",
         "galleryImageReference": {
           "offer": "windowsplustools",
