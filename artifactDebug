@@ -1,0 +1,172 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "newVMName": {
+            "defaultValue": "shentest",
+            "type": "String"
+        },
+        "labName": {
+			"type": "string",
+			"defaultValue": "ShenTestLab"
+		},
+        "size": {
+            "defaultValue": "Standard_D16as_v5",
+            "type": "String"
+        },
+		"userName": {
+			"type": "string",
+			"defaultValue": "shenchen"
+		},
+		"password": {
+			"type": "securestring"
+		},
+        "Visual_Studio_version": {
+            "defaultValue": "2022",
+            "type": "String"
+        },
+        "Visual_Studio_sku": {
+            "defaultValue": "Enterprise",
+            "type": "String"
+        },
+        "Visual_Studio_installerArgs": {
+            "defaultValue": "",
+            "type": "String"
+        },
+        "galleryImageReference": {
+            "defaultValue": {
+                "offer": "cis-windows-server-2016-v1-0-0-l1",
+                "publisher": "center-for-internet-security-inc",
+                "sku": "cis-ws2016-l1",
+                "osType": "Windows",
+                "version": "latest"
+            },
+            "type": "Object"
+        },
+        "deployArtifacts": {
+            "defaultValue": "true",
+            "type": "String",
+            "metadata": {
+                "description": "Other Artifacts"
+            }
+        },
+        "deployVStudio": {
+            "defaultValue": "false",
+            "type": "String",
+            "metadata": {
+                "description": "Add VS Studio"
+            }
+        },
+        "baseTime": {
+            "defaultValue": "[utcNow('u')]",
+            "type": "String"
+        },
+		"labVnetSetting": {	
+            "defaultValue": {	
+                "vnetName": "DtlShenTestLab",	
+                "subnetName": "DtlShenTestLabSubnet"	
+            },	
+            "type": "Object"	
+        },
+        "vmCount": {
+            "defaultValue": 1,
+            "type": "Int"
+        }
+    },
+    "variables": {
+        "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), parameters('labVnetSetting').vnetName)]",
+        "vmName": "[concat(parameters('labName'), '/', parameters('newVMName'))]",
+        "artifacts": [
+            {
+                "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-azurepowershell')]",
+                "installTime": "[dateTimeAdd(parameters('baseTime'), 'PT2H')]"
+            },
+            {
+                "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-chrome')]",
+                "installTime": "[dateTimeAdd(parameters('baseTime'), 'PT2H')]"
+            },
+            {
+                "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-7zip')]",
+                "installTime": "[dateTimeAdd(parameters('baseTime'), 'PT2H')]"
+            },
+            {
+                "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-firefox')]",
+                "installTime": "[dateTimeAdd(parameters('baseTime'), 'PT2H')]"
+            },
+            {
+                "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-git')]",
+                "installTime": "[dateTimeAdd(parameters('baseTime'), 'PT2H')]"
+            },
+            {
+                "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-node')]",
+                "installTime": "[dateTimeAdd(parameters('baseTime'), 'PT2H')]"
+            },
+            {
+                "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-notepadplusplus')]",
+                "installTime": "[dateTimeAdd(parameters('baseTime'), 'PT2H')]"
+            },
+            {
+                "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-vscode64')]",
+                "parameters": [
+                    {
+                        "name": "Architecture",
+                        "value": "64-bit"
+                    },
+                    {
+                        "name": "DesktopIcon",
+                        "value": "true"
+                    }
+                ],
+                "installTime": "[dateTimeAdd(parameters('baseTime'), 'PT2H')]"
+            }
+        ],
+        "vsArtifact": [
+            {
+                "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-visualstudio')]",
+                "parameters": [
+                    {
+                        "name": "version",
+                        "value": "[parameters('Visual_Studio_version')]"
+                    },
+                    {
+                        "name": "sku",
+                        "value": "[parameters('Visual_Studio_sku')]"
+                    },
+                    {
+                        "name": "installerArgs",
+                        "value": "[parameters('Visual_Studio_installerArgs')]"
+                    }
+                ],
+                "installTime": "[dateTimeAdd(parameters('baseTime'), 'PT3H')]"
+            }
+        ]
+    },
+    "resources": [
+        {
+            "type": "Microsoft.DevTestLab/labs/virtualmachines",
+            "apiVersion": "2018-10-15-preview",
+            "name": "[concat(variables('vmName'),'-', padLeft(copyIndex(), 2, '0'))]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "osDiskSizeGb": 128,
+                "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
+                "notes": "mha-base formulas",
+                "galleryImageReference": "[parameters('galleryImageReference')]",
+                "planId": "[parameters('galleryImageReference').sku]",
+                "size": "[parameters('size')]",
+                "userName": "[parameters('userName')]",
+                "password": "[parameters('password')]",
+                "isAuthenticationWithSshKey": false,
+                "artifacts": "[if(equals(parameters('deployArtifacts'),'true'),intersection(variables('artifacts'), if(equals(parameters('deployVStudio'),'true'),variables('vsArtifact'),createArray())),createArray())]",
+                "labSubnetName": "[parameters('labVnetSetting').subnetName]",
+                "disallowPublicIpAddress": true,
+                "storageType": "Standard",
+                "allowClaim": true
+            },
+            "copy": {
+                "name": "[parameters('newVMName')]",
+                "count": "[parameters('vmCount')]"
+            }
+        }
+    ]
+}
